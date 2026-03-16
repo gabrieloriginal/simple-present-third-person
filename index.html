@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grammar Balloons - Learn English</title>
+    <title>Grammar Balloons - Modespice Extra++</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Animaciones base de los globos */
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1); }
             100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
@@ -21,8 +20,6 @@
         .balloon-idle {
             animation: gentleFloat 3s ease-in-out infinite;
         }
-        
-        /* Animación de partículas de explosión */
         @keyframes popParticle {
             0% { transform: translate(0, 0) scale(1); opacity: 1; }
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
@@ -34,8 +31,6 @@
             pointer-events: none;
             z-index: 25;
         }
-
-        /* Animación de pulso del combo */
         @keyframes comboPulse {
             0% { transform: scale(1); text-shadow: 0 0 10px #fbbf24; }
             50% { transform: scale(1.3); text-shadow: 0 0 30px #f59e0b; }
@@ -44,8 +39,6 @@
         .combo-text {
             animation: comboPulse 0.4s ease-out;
         }
-
-        /* Animación de cuenta regresiva */
         @keyframes popIn {
             0% { transform: scale(0.3); opacity: 0; }
             60% { transform: scale(1.2); opacity: 1; }
@@ -54,15 +47,13 @@
         .animate-pop-in {
             animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-
-        /* Animación del ecualizador de música */
         @keyframes eq {
             0% { height: 4px; }
             100% { height: 20px; }
         }
         .eq-bar {
             width: 5px;
-            background-color: #34d399; /* emerald-400 */
+            background-color: #34d399;
             border-radius: 3px;
             animation: eq 0.5s ease-in-out infinite alternate;
         }
@@ -70,38 +61,34 @@
         .eq-bar:nth-child(2) { animation-duration: 0.7s; animation-delay: 0.1s; }
         .eq-bar:nth-child(3) { animation-duration: 0.5s; animation-delay: 0.2s; }
         .eq-bar:nth-child(4) { animation-duration: 0.6s; animation-delay: 0.3s; }
-        
         .music-paused .eq-bar {
             animation: none !important;
             height: 4px !important;
-            background-color: #94a3b8; /* slate-400 */
+            background-color: #94a3b8;
         }
-
-        /* Utilidad para ocultar elementos */
         .hidden-state {
             display: none !important;
+        }
+        @keyframes chaosSpin {
+            100% { filter: hue-rotate(360deg); }
+        }
+        .zone-7-chaos {
+            animation: chaosSpin 0.5s linear infinite;
         }
     </style>
 </head>
 <body class="font-sans antialiased overflow-hidden select-none bg-gray-900">
 
-    <!-- Elemento de música de fondo -->
     <audio id="bg-music" loop preload="auto">
-        <!-- Pista alegre de videojuego arcade -->
         <source src="https://assets.mixkit.co/music/preview/mixkit-fun-video-game-background-2832.mp3" type="audio/mpeg">
     </audio>
 
     <div id="game-wrapper" class="relative w-full h-screen max-h-screen transition-colors duration-1000 bg-gradient-to-b from-sky-500 to-indigo-600">
         
-        <!-- --- INTERFAZ PRINCIPAL (HUD) --- -->
         <div id="hud" class="hidden-state absolute top-0 left-0 w-full p-4 flex justify-between items-start z-30 text-white drop-shadow-md">
-            <!-- Izquierda: Nivel, Controles y Dificultad -->
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-4 bg-white/10 px-5 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-lg">
-                    <button id="btn-pause-play" class="hover:scale-110 transition-transform cursor-pointer text-yellow-300">
-                        <!-- SVG inyectado por JS -->
-                    </button>
-                    <!-- Control de música en el juego (Ecualizador) -->
+                    <button id="btn-pause-play" class="hover:scale-110 transition-transform cursor-pointer text-yellow-300"></button>
                     <button id="btn-music-hud" onclick="toggleBgm()" class="flex items-center gap-[2px] h-6 cursor-pointer hover:opacity-80 transition-opacity pl-4 border-l border-white/30" title="Toggle Music">
                         <div id="hud-eq" class="flex items-end gap-[3px] h-5">
                             <div class="eq-bar"></div>
@@ -110,37 +97,32 @@
                             <div class="eq-bar"></div>
                         </div>
                     </button>
-                    <div class="font-bold text-lg uppercase tracking-wider pl-4 border-l border-white/30">Level <span id="hud-level" class="text-2xl text-yellow-300 ml-1">1</span></div>
+                    <div class="font-bold text-sm uppercase tracking-wider pl-4 border-l border-white/30 truncate max-w-[150px]"><span id="hud-mode-name" class="text-yellow-300"></span></div>
                 </div>
-                <div id="hud-diff" class="text-xs font-bold uppercase tracking-widest text-center opacity-90 bg-black/40 rounded-full py-1.5 shadow-inner border border-white/10">Normal</div>
+                <div id="hud-zone" class="text-xs font-bold uppercase tracking-widest text-center opacity-90 bg-black/40 rounded-full py-1.5 shadow-inner border border-white/10"></div>
             </div>
             
-            <!-- Centro: Temporizador -->
-            <div class="flex flex-col items-center bg-white/10 border border-white/20 px-8 py-2 rounded-3xl backdrop-blur-md shadow-lg mt-1">
+            <div class="flex flex-col items-center bg-white/10 border border-white/20 px-8 py-2 rounded-3xl backdrop-blur-md shadow-lg mt-1 relative">
                 <div class="text-xs font-bold opacity-80 uppercase tracking-widest text-blue-100">Time</div>
                 <div id="hud-time" class="text-4xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tight">00:30</div>
+                <div class="absolute -bottom-8 bg-black/50 px-3 py-1 rounded-full text-xs font-bold text-emerald-300 border border-white/10 whitespace-nowrap">Target: <span id="hud-mode-points">0</span>/<span id="hud-req-score">0</span></div>
             </div>
 
-            <!-- Derecha: Puntaje y Vidas -->
             <div class="flex items-center gap-6 bg-white/10 border border-white/20 px-5 py-2 rounded-full backdrop-blur-md shadow-lg">
                 <div class="flex flex-col items-center min-w-[80px]">
-                    <div class="text-xs font-bold opacity-80 uppercase text-green-200 tracking-widest">Score</div>
+                    <div class="text-xs font-bold opacity-80 uppercase text-green-200 tracking-widest">Total Score</div>
                     <div id="hud-score" class="font-black text-2xl tracking-tight">0</div>
                     <div id="hud-combo" class="text-xs font-bold text-yellow-400 h-4 transition-all"></div>
                 </div>
-                <div id="hud-lives" class="flex gap-1 border-l border-white/30 pl-4">
-                    <!-- Corazones inyectados por JS -->
-                </div>
+                <div id="hud-lives" class="flex gap-1 border-l border-white/30 pl-4"></div>
             </div>
         </div>
 
-        <!-- --- LIENZO DEL JUEGO --- -->
         <div id="game-canvas" class="hidden-state absolute inset-0 z-10">
             <div id="balloons-container" class="absolute inset-0"></div>
             <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
             <div id="floating-texts-container" class="absolute inset-0 pointer-events-none"></div>
 
-            <!-- Tablero del Sujeto -->
             <div class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-20">
                 <div class="text-white/90 font-bold mb-3 uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-sm bg-black/40 px-5 py-1.5 rounded-full border border-white/10 backdrop-blur-sm">
                     Select the correct verb
@@ -156,167 +138,136 @@
             </div>
         </div>
 
-        <!-- --- MENÚS (Superposiciones) --- -->
-        
-        <!-- Menú Principal -->
-        <div id="menu-overlay" class="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex flex-col items-center justify-center z-50">
-            <!-- Elementos decorativos de fondo -->
+        <div id="login-overlay" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center z-50">
+            <div class="bg-black/40 p-12 rounded-[2rem] border border-white/10 text-center shadow-2xl max-w-md w-full backdrop-blur-md">
+                <h1 class="text-4xl font-black text-white mb-2 tracking-tight">MODESPICE</h1>
+                <h2 class="text-2xl font-bold text-yellow-400 mb-8 tracking-widest uppercase">Extra++</h2>
+                <input type="text" id="username-input" placeholder="Enter Username" class="w-full bg-white/10 border border-white/20 text-white text-center text-xl p-4 rounded-xl mb-6 outline-none focus:border-yellow-400 transition-colors" autocomplete="off" maxlength="15">
+                <button onclick="login()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 rounded-xl shadow-[0_4px_0_#064e3b] active:translate-y-1 active:shadow-none transition-all">ENTER DATABASE</button>
+            </div>
+        </div>
+
+        <div id="menu-overlay" class="hidden-state absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex flex-col items-center justify-center z-50">
             <div class="absolute top-20 left-20 w-32 h-40 bg-pink-600/20 rounded-t-full rounded-b-[45%] animate-bounce blur-sm"></div>
             <div class="absolute bottom-32 right-32 w-40 h-52 bg-blue-600/20 rounded-t-full rounded-b-[45%] animate-pulse blur-sm"></div>
             <div class="absolute top-40 right-40 w-24 h-32 bg-yellow-500/10 rounded-t-full rounded-b-[45%] animate-pulse blur-sm" style="animation-delay: 1s;"></div>
 
             <div class="bg-white/10 p-12 md:p-16 rounded-[2.5rem] backdrop-blur-xl border border-white/20 text-center shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex flex-col items-center relative z-10 w-11/12 max-w-2xl">
-                <div class="flex gap-3 mb-8">
+                <div class="flex gap-3 mb-4">
                    <div class="w-10 h-14 bg-rose-500 rounded-t-full rounded-b-[45%] shadow-[inset_-4px_-4px_10px_rgba(0,0,0,0.3)] opacity-90"></div>
                    <div class="w-12 h-16 bg-blue-500 rounded-t-full rounded-b-[45%] -mt-4 shadow-[inset_-4px_-4px_10px_rgba(0,0,0,0.3)]"></div>
                    <div class="w-10 h-14 bg-emerald-500 rounded-t-full rounded-b-[45%] shadow-[inset_-4px_-4px_10px_rgba(0,0,0,0.3)] opacity-90"></div>
                 </div>
-                <h1 class="text-5xl md:text-7xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] mb-3 leading-tight tracking-tight">
-                    Grammar<br><span class="text-yellow-400 bg-clip-text">Balloons</span>
+                <h1 class="text-4xl md:text-6xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] leading-tight tracking-tight">
+                    Modespice<br><span class="text-yellow-400 bg-clip-text">Extra++</span>
                 </h1>
-                <p class="text-lg md:text-xl text-indigo-100 font-semibold mb-10 drop-shadow-md bg-black/30 px-6 py-2 rounded-full border border-white/10 uppercase tracking-widest">
-                    Simple Present (3rd Person)
-                </p>
+                <p id="menu-welcome" class="text-lg text-indigo-200 font-semibold mb-8 drop-shadow-md mt-4"></p>
                 
-                <div class="mb-12 w-full">
-                    <p class="text-white/80 font-semibold mb-4 uppercase tracking-widest text-sm">Select Difficulty</p>
-                    <div class="flex flex-col md:flex-row gap-4 justify-center w-full">
-                        <button onclick="setDifficulty(1)" id="diff-btn-1" class="diff-btn flex-1 bg-emerald-600 text-white px-5 py-4 rounded-xl font-bold shadow-[0_4px_0_#064e3b] transition-all transform hover:-translate-y-1"> Beginner </button>
-                        <button onclick="setDifficulty(2)" id="diff-btn-2" class="diff-btn flex-1 bg-slate-600 opacity-70 text-white px-5 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1"> Normal </button>
-                        <button onclick="setDifficulty(3)" id="diff-btn-3" class="diff-btn flex-1 bg-slate-600 opacity-70 text-white px-5 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1"> Advanced </button>
+                <div class="flex flex-col gap-4 w-full max-w-sm mb-6">
+                    <button onclick="startGame()" id="btn-play-career" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 text-yellow-900 font-black text-2xl py-4 rounded-xl shadow-[0_6px_0_#9a6324] active:shadow-none active:translate-y-1 transition-all">CONTINUE CAREER</button>
+                    <button onclick="openLeaderboard()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xl py-4 rounded-xl shadow-[0_4px_0_#1e3a8a] active:shadow-none active:translate-y-1 transition-all">LEADERBOARD</button>
+                    <div class="flex gap-4">
+                        <button onclick="openSettings()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold text-lg py-3 rounded-xl shadow-[0_4px_0_#334155] active:shadow-none active:translate-y-1 transition-all">SETTINGS</button>
+                        <button onclick="exportSave()" class="flex-1 bg-fuchsia-700 hover:bg-fuchsia-600 text-white font-bold text-lg py-3 rounded-xl shadow-[0_4px_0_#4a044e] active:shadow-none active:translate-y-1 transition-all">EXPORT JSON</button>
                     </div>
+                    <button onclick="logout()" class="text-white/50 hover:text-rose-400 font-semibold mt-2 transition-colors text-sm">SWITCH USER</button>
                 </div>
-                
-                <button onclick="startGame()" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 text-yellow-900 font-black text-3xl py-5 px-20 rounded-full shadow-[0_8px_0_#9a6324,0_15px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_4px_0_#9a6324,0_10px_10px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-2 transition-all mb-8 flex items-center gap-4 group">
-                    <svg class="group-hover:animate-ping absolute opacity-0 group-hover:opacity-30" width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="relative z-10"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    PLAY
-                </button>
-                
-                <button onclick="openSettings()" class="text-white/70 hover:text-white font-medium flex items-center gap-2 text-sm bg-white/5 px-6 py-3 rounded-full hover:bg-white/10 transition-colors border border-white/5">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Settings
-                </button>
-            </div>
-
-            <!-- Créditos (Desarrollado por Hugo Luque) -->
-            <div class="absolute bottom-6 text-white/50 text-sm font-semibold tracking-wider uppercase">
-                Developed by Hugo Luque
             </div>
         </div>
 
-        <!-- Superposición de cuenta regresiva -->
+        <div id="leaderboard-overlay" class="hidden-state absolute inset-0 bg-slate-900/90 backdrop-blur-xl flex flex-col items-center justify-center z-50">
+            <div class="bg-black/60 border border-white/20 p-8 rounded-[2rem] w-11/12 max-w-3xl shadow-2xl h-[80vh] flex flex-col relative">
+                <button onclick="setGameState('menu')" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <h2 class="text-4xl font-black text-white mb-6 tracking-wide text-center">GLOBAL RANKING</h2>
+                <div class="flex bg-white/10 p-3 rounded-t-xl text-white/70 font-bold uppercase tracking-widest text-sm">
+                    <div class="w-16 text-center">Rank</div>
+                    <div class="flex-1 pl-4">Hacker</div>
+                    <div class="flex-1 text-center">Max Mode</div>
+                    <div class="w-32 text-right pr-4">Points</div>
+                </div>
+                <div id="leaderboard-content" class="flex-1 overflow-y-auto bg-black/40 rounded-b-xl border border-white/5 p-2 space-y-2"></div>
+            </div>
+        </div>
+
         <div id="countdown-overlay" class="hidden-state absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-40">
-            <div id="countdown-text" class="text-9xl md:text-[12rem] font-black drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]">
-                3
-            </div>
+            <div id="countdown-text" class="text-9xl md:text-[12rem] font-black drop-shadow-[0_0_30px_rgba(250,204,21,0.8)]">3</div>
         </div>
 
-        <!-- Menú de Pausa -->
         <div id="paused-overlay" class="hidden-state absolute inset-0 bg-slate-900/80 backdrop-blur-xl flex items-center justify-center z-50">
             <div class="bg-white/10 border border-white/20 p-12 rounded-[2rem] text-center shadow-[0_0_50px_rgba(0,0,0,0.5)] min-w-[380px]">
                 <h2 class="text-4xl font-black text-white mb-10 uppercase tracking-widest drop-shadow-md">Paused</h2>
                 <div class="flex flex-col gap-4">
-                    <button onclick="setGameState('countdown_resume')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 px-8 rounded-xl shadow-[0_4px_0_#064e3b] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Resume
-                    </button>
-                    <button onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl py-4 px-8 rounded-xl shadow-[0_4px_0_#312e81] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Restart Level
-                    </button>
-                    <button onclick="openSettings()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 px-8 rounded-xl border border-white/10 transition-all flex justify-center items-center gap-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings
-                    </button>
-                    <button onclick="setGameState('menu')" class="text-white/50 hover:text-rose-400 font-semibold mt-6 flex justify-center items-center gap-2 transition-colors">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Exit to Menu
-                    </button>
+                    <button onclick="setGameState('countdown_resume')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 px-8 rounded-xl shadow-[0_4px_0_#064e3b] active:shadow-none active:translate-y-1 transition-all">Resume</button>
+                    <button onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl py-4 px-8 rounded-xl shadow-[0_4px_0_#312e81] active:shadow-none active:translate-y-1 transition-all">Restart Mode</button>
+                    <button onclick="openSettings()" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 px-8 rounded-xl border border-white/10 transition-all">Settings</button>
+                    <button onclick="setGameState('menu')" class="text-white/50 hover:text-rose-400 font-semibold mt-6 transition-colors">Exit to Menu</button>
                 </div>
             </div>
         </div>
 
-        <!-- Menú de Ajustes -->
         <div id="settings-overlay" class="hidden-state absolute inset-0 bg-slate-900/90 backdrop-blur-xl flex items-center justify-center z-50">
             <div class="bg-slate-800 border border-slate-700 p-10 rounded-[2rem] text-center shadow-2xl min-w-[380px] relative">
                 <button onclick="closeSettings()" class="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
                 <h2 class="text-3xl font-black text-white mb-10 tracking-wide">Settings</h2>
-                
                 <div class="flex flex-col gap-6">
                     <div class="flex justify-between items-center bg-slate-700/50 p-5 rounded-xl border border-slate-600">
-                        <span class="text-lg font-semibold text-white flex items-center gap-3">
-                            <span id="icon-music"></span> Music
-                        </span>
+                        <span class="text-lg font-semibold text-white flex items-center gap-3"><span id="icon-music"></span> Music</span>
                         <button id="toggle-music" onclick="toggleBgm()" class="w-16 h-8 rounded-full relative transition-colors bg-emerald-500">
                             <div id="toggle-music-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 transition-transform translate-x-9 shadow-sm"></div>
                         </button>
                     </div>
-
                     <div class="flex justify-between items-center bg-slate-700/50 p-5 rounded-xl border border-slate-600">
-                        <span class="text-lg font-semibold text-white flex items-center gap-3">
-                            <span id="icon-sfx"></span> Sound Effects
-                        </span>
+                        <span class="text-lg font-semibold text-white flex items-center gap-3"><span id="icon-sfx"></span> Sound Effects</span>
                         <button id="toggle-sfx" onclick="toggleSfx()" class="w-16 h-8 rounded-full relative transition-colors bg-emerald-500">
                             <div id="toggle-sfx-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 transition-transform translate-x-9 shadow-sm"></div>
                         </button>
                     </div>
                 </div>
-
-                <button onclick="closeSettings()" class="mt-10 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl py-4 px-16 rounded-xl shadow-[0_4px_0_#312e81] active:translate-y-1 active:shadow-none transition-all w-full">
-                    Accept
-                </button>
+                <button onclick="closeSettings()" class="mt-10 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl py-4 px-16 rounded-xl shadow-[0_4px_0_#312e81] active:translate-y-1 active:shadow-none transition-all w-full">Accept</button>
             </div>
         </div>
 
-        <!-- Transición de Nivel -->
         <div id="transition-overlay" class="hidden-state absolute inset-0 bg-white/10 backdrop-blur-md flex flex-col items-center justify-center z-40">
            <div class="bg-slate-900/80 p-12 rounded-3xl text-center border border-yellow-400/50 shadow-[0_0_50px_rgba(250,204,21,0.2)] backdrop-blur-xl">
-               <h2 class="text-4xl md:text-6xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-6 animate-pulse tracking-wide">
-                 LEVEL <span id="trans-level" class="text-yellow-400"></span> COMPLETED!
-               </h2>
-               <p id="trans-next-theme" class="text-xl md:text-2xl text-indigo-100 font-semibold drop-shadow-md bg-white/10 px-8 py-3 rounded-full inline-block border border-white/10">
-                 Get ready for the next one...
-               </p>
+               <h2 class="text-5xl md:text-7xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-4 animate-pulse tracking-wide uppercase text-emerald-400">MODE CLEARED!</h2>
+               <p class="text-2xl text-white font-bold mb-8">Score Achieved: <span id="trans-score" class="text-yellow-400"></span></p>
+               <p id="trans-next-theme" class="text-xl md:text-2xl text-indigo-100 font-semibold drop-shadow-md bg-white/10 px-8 py-3 rounded-full inline-block border border-white/10"></p>
            </div>
         </div>
 
-        <!-- Fin del Juego -->
         <div id="gameover-overlay" class="hidden-state absolute inset-0 bg-rose-950/90 backdrop-blur-xl flex items-center justify-center z-50">
-            <div class="bg-white/10 p-10 md:p-14 rounded-[2.5rem] text-center shadow-[0_0_80px_rgba(225,29,72,0.4)] border border-rose-500/30">
-                <h2 class="text-5xl font-black text-rose-500 mb-8 uppercase tracking-widest drop-shadow-md">Game Over</h2>
-                <div class="bg-black/30 rounded-2xl p-8 mb-10 border border-white/5">
-                    <p class="text-sm text-white/60 font-bold uppercase tracking-widest mb-2">Final Score</p>
-                    <p id="go-score" class="text-7xl font-black text-white drop-shadow-lg tracking-tighter">0</p>
-                    <p id="go-level" class="text-sm text-rose-200 font-semibold mt-6 bg-rose-900/50 py-2 px-4 rounded-full inline-block border border-rose-500/30">You reached Level 1</p>
+            <div class="bg-white/10 p-10 md:p-14 rounded-[2.5rem] text-center shadow-[0_0_80px_rgba(225,29,72,0.4)] border border-rose-500/30 max-w-lg w-full">
+                <h2 class="text-5xl font-black text-rose-500 mb-6 uppercase tracking-widest drop-shadow-md">Skill Issue</h2>
+                <div class="bg-black/30 rounded-2xl p-8 mb-8 border border-white/5">
+                    <p class="text-sm text-white/60 font-bold uppercase tracking-widest mb-2">Final Run Score</p>
+                    <p id="go-score" class="text-6xl font-black text-white drop-shadow-lg tracking-tighter">0</p>
+                    <p id="go-mode" class="text-sm text-rose-200 font-semibold mt-4 bg-rose-900/50 py-2 px-4 rounded-full inline-block border border-rose-500/30"></p>
                 </div>
-                
-                <div class="flex flex-col md:flex-row gap-4">
-                    <button onclick="startGame()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 px-8 rounded-xl shadow-[0_4px_0_#064e3b] active:translate-y-1 active:shadow-none transition-all flex justify-center items-center gap-3">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Play Again
-                    </button>
-                    <button onclick="setGameState('menu')" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xl px-8 py-4 rounded-xl border border-white/10 transition-all flex justify-center items-center gap-2">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Menu
-                    </button>
+                <div class="flex flex-col gap-4 w-full">
+                    <button onclick="startGame()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xl py-4 rounded-xl shadow-[0_4px_0_#064e3b] active:translate-y-1 active:shadow-none transition-all">Retry Mode</button>
+                    <button onclick="setGameState('menu')" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold text-xl py-4 rounded-xl border border-white/10 transition-all">Back to Menu</button>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- --- LÓGICA JAVASCRIPT --- -->
     <script>
-        // --- FUNCIÓN DE PANTALLA COMPLETA ---
         function enterFullScreen() {
-            const elem = document.documentElement; // Aplica a toda la página web
+            const elem = document.documentElement;
             if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => console.log("Fullscreen blocked:", err));
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
                 elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
+            } else if (elem.msRequestFullscreen) {
                 elem.msRequestFullscreen();
             }
         }
 
-        // --- ICONOS SVG ---
         const ICONS = {
             play: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`,
             pause: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`,
@@ -325,71 +276,30 @@
             volumeX: `<svg class="text-slate-500" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>`
         };
 
-        // --- DATOS DE GRAMÁTICA (Inglés) ---
         const GRAMMAR_DATA = {
             1: [
                 { s: "He", c: "plays", i: ["play", "playing", "played"] },
                 { s: "She", c: "runs", i: ["run", "running", "ran"] },
                 { s: "It", c: "sleeps", i: ["sleep", "sleeping", "slept"] },
                 { s: "The dog", c: "barks", i: ["bark", "barking", "barked"] },
-                { s: "My dad", c: "works", i: ["work", "working", "worked"] },
-                { s: "The cat", c: "jumps", i: ["jump", "jumping", "jumped"] },
-                { s: "He", c: "walks", i: ["walk", "walksing", "walked"] },
-                { s: "She", c: "talks", i: ["talk", "talksing", "talked"] },
-                { s: "It", c: "bites", i: ["bite", "biting", "bit"] },
-                { s: "The boy", c: "kicks", i: ["kick", "kicking", "kicked"] },
-                { s: "Dogs", c: "bark", i: ["barks", "barking", "barked"] },
-                { s: "Cats", c: "jump", i: ["jumps", "jumping", "jumped"] },
-                { s: "They", c: "play", i: ["plays", "playing", "played"] },
-                { s: "We", c: "run", i: ["runs", "running", "ran"] },
-                { s: "I", c: "work", i: ["works", "working", "worked"] }
+                { s: "My dad", c: "works", i: ["work", "working", "worked"] }
             ],
             2: [
                 { s: "He", c: "watches", i: ["watch", "watchs", "watching"] },
                 { s: "She", c: "washes", i: ["wash", "washs", "washing"] },
                 { s: "It", c: "goes", i: ["go", "gos", "going"] },
                 { s: "He", c: "does", i: ["do", "dos", "doing"] },
-                { s: "The mechanic", c: "fixes", i: ["fix", "fixs", "fixing"] },
-                { s: "She", c: "kisses", i: ["kiss", "kisss", "kissing"] },
-                { s: "He", c: "catches", i: ["catch", "catchs", "catching"] },
-                { s: "The teacher", c: "teaches", i: ["teach", "teachs", "teaching"] },
-                { s: "She", c: "misses", i: ["miss", "misss", "missing"] },
-                { s: "He", c: "mixes", i: ["mix", "mixs", "mixing"] },
-                { s: "They", c: "watch", i: ["watches", "watchs", "watching"] },
-                { s: "We", c: "wash", i: ["washes", "washs", "washing"] },
-                { s: "You", c: "go", i: ["goes", "gos", "going"] },
-                { s: "I", c: "do", i: ["does", "dos", "doing"] }
+                { s: "The mechanic", c: "fixes", i: ["fix", "fixs", "fixing"] }
             ],
             3: [
                 { s: "The bird", c: "flies", i: ["fly", "flys", "flying"] },
                 { s: "She", c: "cries", i: ["cry", "crys", "crying"] },
                 { s: "He", c: "studies", i: ["study", "studys", "studying"] },
                 { s: "She", c: "tries", i: ["try", "trys", "trying"] },
-                { s: "He", c: "carries", i: ["carry", "carrys", "carrying"] },
-                { s: "She", c: "marries", i: ["marry", "marrys", "marrying"] },
-                { s: "It", c: "dries", i: ["dry", "drys", "drying"] },
-                { s: "He", c: "has", i: ["have", "haves", "having"] },
-                { s: "She", c: "is", i: ["be", "am", "are"] },
-                { s: "John", c: "copies", i: ["copy", "copys", "copying"] },
-                { s: "They", c: "fly", i: ["flies", "flys", "flying"] },
-                { s: "We", c: "cry", i: ["cries", "crys", "crying"] },
-                { s: "You", c: "study", i: ["studies", "studys", "studying"] },
-                { s: "I", c: "have", i: ["has", "haves", "having"] },
-                { s: "You", c: "are", i: ["is", "am", "be"] }
+                { s: "He", c: "has", i: ["have", "haves", "having"] }
             ]
         };
 
-        // --- TEMAS DE NIVELES ---
-        const LEVEL_THEMES = [
-            { bg: "from-sky-500 to-indigo-600", name: "Sunny Meadow" },
-            { bg: "from-amber-500 to-orange-700", name: "Sandy Desert" },
-            { bg: "from-violet-900 to-fuchsia-900", name: "Starry Space" },
-            { bg: "from-cyan-700 to-blue-900", name: "Deep Ocean" },
-            { bg: "from-rose-800 to-red-600", name: "Lava Volcano" },
-            { bg: "from-emerald-500 to-teal-800", name: "Magic Jungle" }
-        ];
-
-        // --- COLORES DE LOS GLOBOS ---
         const BALLOON_COLORS = [
             { class: 'bg-rose-500', hex: '#f43f5e' },
             { class: 'bg-blue-500', hex: '#3b82f6' },
@@ -399,22 +309,44 @@
             { class: 'bg-pink-500', hex: '#ec4899' }
         ];
 
-        // --- SISTEMA DE AUDIO ---
+        const ZONES_DEF = [
+            { name: "Simplicity", bg: "from-sky-500 to-indigo-600", modes: ["The First Mode", "Instant Win Mode", "Deep Instant Win Mode", "Rock Bottom Instant Win Mode", "Unfailable Mode", "The Lower Gap Mode", "Automatic Mode", "Effortless Mode", "Easy Mode"] },
+            { name: "Normality", bg: "from-amber-500 to-orange-700", modes: ["Normal Mode", "False 1", "TRUE 1", "Medium Mode", "Intermediate Mode", "Hard Mode", "Encore Mode", "True Hard Mode", "Extreme Mode", "Insane Mode", "Darkness Mode", "Broken Mode", "Nightmare Mode", "Unforgiving Mode", "Max Mode", "Sleep Mode", "Sickened Sleep", "Halcyon Mode", "Fire Mode", "True Extreme Mode"] },
+            { name: "Insanity", bg: "from-violet-900 to-fuchsia-900", modes: ["TurkishSmosh Mode", "Super Idol Mode", "Greek Mode", "God Mode", "Archean Mode", "Divine Mode", "Goku Mode", "Quantum Mode", "Miserable Mode", "Dramatic Mode", "Vis Mode", "Unimaginable Mode", "True Nightmare Mode", "Eternal Nightmare Mode", "Eternal Torture Mode"] },
+            { name: "Impossibility", bg: "from-cyan-700 to-blue-900", modes: ["Evil Mode", "Doomed Mode", "Impossible Mode", "True Turkish Smosh Mode", "Dreadful Mode", "Immeasurable Mode", "Capitalism mode", "Real Mode", "Yen Mode", "Euro Mode", "Greed Mode", "Paypal Mode", "Lunatic Mode", "The Mode", "Emotionless Mode", "Pointless Mode", "END Mode"] },
+            { name: "Ascension", bg: "from-rose-800 to-red-600", modes: ["Error Mode", "BSOD Mode", "Super Hard Mode", "Super Extreme Mode", "Super Nightmare Mode", "Final Destination Mode", "Illuminati Mode", "True God Mode", "Chaos Mode"] },
+            { name: "Turmoil", bg: "from-black to-red-900", modes: ["Anomalous Mode", "RUN Mode", "HELL Mode", "Aero Mode", "Daymare Mode", "Don't Jump Mode", "Scorching Mode", "Wistfully Mode", "True Miserable Mode", "Supreme Mode"] },
+            { name: "Ragebait", bg: "from-black to-white", modes: ["Major League Mode", "True Eternal Torture Mode", "Megadeath Mode", "Dilly Impossible Mode", "why Mode", "True Impossible Mode", "The Final Mode", "True End Mode"] }
+        ];
+
+        let ALL_MODES = [];
+        ZONES_DEF.forEach((z, zi) => {
+            z.modes.forEach((m, mi) => {
+                let globIndex = ALL_MODES.length;
+                let t = Math.max(1.5, 35 - Math.floor(globIndex * 0.4));
+                let s = 0.15 + (globIndex * 0.06);
+                ALL_MODES.push({
+                    index: globIndex,
+                    zoneId: zi + 1,
+                    zoneName: z.name,
+                    bgClass: z.bg,
+                    name: m,
+                    time: t,
+                    speed: s,
+                    reqScore: 50 + (globIndex * 15)
+                });
+            });
+        });
+
         const AudioSys = {
             ctx: null,
             bgmEl: null,
             init: function() {
-                // Iniciar sintetizador para efectos de sonido
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
-                // Obtener elemento de audio HTML5 para música de fondo
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
                 if (!this.bgmEl) {
                     this.bgmEl = document.getElementById('bg-music');
-                    this.bgmEl.volume = 0.5; // Volumen al 50%
+                    this.bgmEl.volume = 0.5;
                 }
             },
             playTone: function(freq, type, duration, vol=0.1) {
@@ -424,11 +356,9 @@
                     const gain = this.ctx.createGain();
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    
                     gain.gain.setValueAtTime(0, this.ctx.currentTime);
                     gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.05);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                    
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
@@ -449,61 +379,67 @@
             },
             startBGM: function() {
                 if(!this.bgmEl || !bgmOn) return;
-                if (this.bgmEl.paused) {
-                    this.bgmEl.play().catch(e => console.log("Audio playback blocked by browser:", e));
-                }
+                if (this.bgmEl.paused) this.bgmEl.play().catch(()=>{});
             },
             stopBGM: function() {
-                if(this.bgmEl && !this.bgmEl.paused) {
-                    this.bgmEl.pause();
-                }
+                if(this.bgmEl && !this.bgmEl.paused) this.bgmEl.pause();
             }
         };
 
-        // --- ESTADO DEL JUEGO ---
-        let gameState = 'menu';
+        let gameState = 'login';
+        let currentUser = "";
+        let usersData = JSON.parse(localStorage.getItem('modespice_users')) || {};
+        let currentModeIndex = 0;
         let score = 0;
+        let modePoints = 0;
         let lives = 3;
-        let level = 1;
         let timeLeft = 30;
         let currentSubject = "Ready...";
         let balloons = []; 
         let balloonElements = {}; 
         let combo = 0; 
-        
-        // Ajustes
         let bgmOn = true;
         let sfxOn = true;
-        let previousState = 'menu';
-        let selectedDifficulty = 1;
-        
-        const DIFF_SETTINGS = {
-            1: { name: "Beginner", time: 45, baseSpeed: 0.15, color: "bg-emerald-600", text: "text-emerald-400" },
-            2: { name: "Normal", time: 30, baseSpeed: 0.25, color: "bg-amber-500", text: "text-amber-400" },
-            3: { name: "Advanced", time: 20, baseSpeed: 0.40, color: "bg-rose-600", text: "text-rose-400" }
-        };
-
+        let previousState = 'login';
         let gameLoopInterval = null;
         let timerInterval = null;
         let transitionTimeout = null;
 
-        function setDifficulty(levelIndex) {
-            selectedDifficulty = levelIndex;
-            for (let i = 1; i <= 3; i++) {
-                const btn = document.getElementById(`diff-btn-${i}`);
-                if (i === selectedDifficulty) {
-                    btn.className = `diff-btn flex-1 ${DIFF_SETTINGS[i].color} text-white px-5 py-4 rounded-xl font-bold shadow-[0_4px_0_rgba(0,0,0,0.4)] transition-all transform hover:-translate-y-1 scale-105`;
-                    btn.classList.remove('opacity-70');
-                } else {
-                    btn.className = `diff-btn flex-1 bg-slate-600 opacity-70 text-white px-5 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 border border-white/5`;
-                }
-            }
+        function saveUserData() {
+            if(!currentUser) return;
+            if(!usersData[currentUser]) usersData[currentUser] = { maxMode: 0, points: 0 };
+            if(currentModeIndex > usersData[currentUser].maxMode) usersData[currentUser].maxMode = currentModeIndex;
+            if(score > usersData[currentUser].points) usersData[currentUser].points = score;
+            localStorage.setItem('modespice_users', JSON.stringify(usersData));
         }
 
-        // --- ACTUALIZADOR DE INTERFAZ (UI) ---
+        function exportSave() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(usersData));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "modespice_save.json");
+            dl.click();
+        }
+
+        function login() {
+            const val = document.getElementById('username-input').value.trim();
+            if(!val) return;
+            currentUser = val;
+            if(!usersData[currentUser]) usersData[currentUser] = { maxMode: 0, points: 0 };
+            currentModeIndex = usersData[currentUser].maxMode;
+            AudioSys.init();
+            setGameState('menu');
+        }
+
+        function logout() {
+            currentUser = "";
+            setGameState('login');
+        }
+
         function updateUI() {
             const inGame = gameState === 'playing' || gameState === 'paused' || gameState === 'transition' || gameState === 'countdown' || gameState === 'countdown_resume';
             
+            document.getElementById('login-overlay').classList.toggle('hidden-state', gameState !== 'login');
             document.getElementById('hud').classList.toggle('hidden-state', !inGame);
             document.getElementById('game-canvas').classList.toggle('hidden-state', !inGame);
             document.getElementById('menu-overlay').classList.toggle('hidden-state', gameState !== 'menu');
@@ -511,21 +447,27 @@
             document.getElementById('settings-overlay').classList.toggle('hidden-state', gameState !== 'settings');
             document.getElementById('transition-overlay').classList.toggle('hidden-state', gameState !== 'transition');
             document.getElementById('gameover-overlay').classList.toggle('hidden-state', gameState !== 'gameover');
-            
-            const isCountdown = gameState === 'countdown' || gameState === 'countdown_resume';
-            document.getElementById('countdown-overlay').classList.toggle('hidden-state', !isCountdown);
+            document.getElementById('leaderboard-overlay').classList.toggle('hidden-state', gameState !== 'leaderboard');
+            document.getElementById('countdown-overlay').classList.toggle('hidden-state', (gameState !== 'countdown' && gameState !== 'countdown_resume'));
+
+            if(gameState === 'menu') {
+                document.getElementById('menu-welcome').innerText = `Hacker: ${currentUser} | Max Mode: ${usersData[currentUser].maxMode}`;
+                document.getElementById('btn-play-career').innerText = `PLAY MODE ${currentModeIndex}`;
+            }
 
             if (inGame) {
-                const currentTheme = LEVEL_THEMES[(level - 1) % LEVEL_THEMES.length];
-                document.getElementById('game-wrapper').className = `relative w-full h-screen max-h-screen transition-colors duration-1000 bg-gradient-to-b ${currentTheme.bg}`;
+                const modeObj = ALL_MODES[currentModeIndex];
+                const gw = document.getElementById('game-wrapper');
+                gw.className = `relative w-full h-screen max-h-screen transition-colors duration-1000 bg-gradient-to-b ${modeObj.bgClass}`;
+                if(modeObj.zoneId >= 7) gw.classList.add('zone-7-chaos');
+                else gw.classList.remove('zone-7-chaos');
 
-                document.getElementById('hud-level').innerText = level;
+                document.getElementById('hud-mode-name').innerText = modeObj.name;
+                document.getElementById('hud-zone').innerText = `Zone ${modeObj.zoneId}: ${modeObj.zoneName}`;
                 document.getElementById('hud-score').innerText = score;
+                document.getElementById('hud-mode-points').innerText = modePoints;
+                document.getElementById('hud-req-score').innerText = modeObj.reqScore;
                 document.getElementById('current-subject').innerText = currentSubject;
-                
-                const diffLabel = document.getElementById('hud-diff');
-                diffLabel.innerText = DIFF_SETTINGS[selectedDifficulty].name;
-                diffLabel.className = `text-xs font-bold uppercase tracking-widest text-center px-3 py-1.5 rounded-full ${DIFF_SETTINGS[selectedDifficulty].text} bg-black/40 shadow-inner border border-white/10`;
                 
                 const comboEl = document.getElementById('hud-combo');
                 if (combo > 1) {
@@ -536,14 +478,12 @@
                     comboEl.innerText = "";
                 }
 
-                const timeStr = timeLeft.toString().padStart(2, '0');
+                const tShow = Math.max(0, Math.ceil(timeLeft));
+                const timeStr = tShow.toString().padStart(2, '0');
                 const timeEl = document.getElementById('hud-time');
                 timeEl.innerText = `00:${timeStr}`;
-                if (timeLeft <= 5 && timeLeft > 0) {
-                    timeEl.className = 'text-4xl font-black text-rose-400 animate-pulse drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-tight';
-                } else {
-                    timeEl.className = 'text-4xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tight';
-                }
+                if (tShow <= 2 && tShow > 0) timeEl.className = 'text-4xl font-black text-rose-400 animate-pulse tracking-tight drop-shadow-lg';
+                else timeEl.className = 'text-4xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] tracking-tight';
 
                 const livesContainer = document.getElementById('hud-lives');
                 livesContainer.innerHTML = '';
@@ -557,7 +497,7 @@
                 const playPauseBtn = document.getElementById('btn-pause-play');
                 playPauseBtn.innerHTML = gameState === 'playing' ? ICONS.pause : ICONS.play;
                 
-                if (isCountdown) {
+                if (gameState === 'countdown' || gameState === 'countdown_resume') {
                     playPauseBtn.onclick = null;
                     playPauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 } else {
@@ -565,64 +505,66 @@
                     playPauseBtn.onclick = () => setGameState(gameState === 'playing' ? 'paused' : 'playing');
                 }
                 
-                // Actualizar ecualizador visual
                 const hudEq = document.getElementById('hud-eq');
-                const activeStates = ['playing', 'countdown', 'countdown_resume', 'transition'];
-                if (bgmOn && activeStates.includes(gameState)) {
-                    hudEq.classList.remove('music-paused');
-                } else {
-                    hudEq.classList.add('music-paused');
-                }
+                if (bgmOn && ['playing', 'countdown', 'countdown_resume', 'transition'].includes(gameState)) hudEq.classList.remove('music-paused');
+                else hudEq.classList.add('music-paused');
             }
 
-            // Interfaz de Ajustes
             document.getElementById('icon-music').innerHTML = bgmOn ? ICONS.volume2 : ICONS.volumeX;
             document.getElementById('icon-sfx').innerHTML = sfxOn ? ICONS.volume2.replace('emerald-400', 'fuchsia-400') : ICONS.volumeX;
-            
-            const btnMusic = document.getElementById('toggle-music');
-            btnMusic.className = `w-16 h-8 rounded-full relative transition-colors shadow-inner border border-black/20 ${bgmOn ? 'bg-emerald-500' : 'bg-slate-600'}`;
+            document.getElementById('toggle-music').className = `w-16 h-8 rounded-full relative transition-colors shadow-inner border border-black/20 ${bgmOn ? 'bg-emerald-500' : 'bg-slate-600'}`;
             document.getElementById('toggle-music-knob').className = `w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-md ${bgmOn ? 'translate-x-9' : 'translate-x-1'}`;
-
-            const btnSfx = document.getElementById('toggle-sfx');
-            btnSfx.className = `w-16 h-8 rounded-full relative transition-colors shadow-inner border border-black/20 ${sfxOn ? 'bg-emerald-500' : 'bg-slate-600'}`;
+            document.getElementById('toggle-sfx').className = `w-16 h-8 rounded-full relative transition-colors shadow-inner border border-black/20 ${sfxOn ? 'bg-emerald-500' : 'bg-slate-600'}`;
             document.getElementById('toggle-sfx-knob').className = `w-6 h-6 bg-white rounded-full absolute top-1 transition-transform shadow-md ${sfxOn ? 'translate-x-9' : 'translate-x-1'}`;
 
             if (gameState === 'gameover') {
                 document.getElementById('go-score').innerText = score;
-                document.getElementById('go-level').innerText = `You reached Level ${level} (${DIFF_SETTINGS[selectedDifficulty].name})`;
+                document.getElementById('go-mode').innerText = `Died at ${ALL_MODES[currentModeIndex].name}`;
             }
             if (gameState === 'transition') {
-                document.getElementById('trans-level').innerText = level;
-                document.getElementById('trans-next-theme').innerText = LEVEL_THEMES[level % LEVEL_THEMES.length].name;
+                document.getElementById('trans-score').innerText = score;
+                let nxt = ALL_MODES[currentModeIndex + 1];
+                if(nxt) document.getElementById('trans-next-theme').innerText = `NEXT: ${nxt.name}`;
+                else document.getElementById('trans-next-theme').innerText = "YOU BEAT THE GAME. GO TOUCH GRASS.";
             }
 
             manageAudio();
         }
 
-        // --- LÓGICA DE MANEJO DE AUDIO ---
         function manageAudio() {
-            const activeStates = ['playing', 'countdown', 'countdown_resume', 'transition'];
-            // Reproducir solo mientras se está en el flujo activo del juego
-            if (activeStates.includes(gameState) && bgmOn) {
-                AudioSys.startBGM();
-            } else {
-                AudioSys.stopBGM();
-            }
+            if (['playing', 'countdown', 'countdown_resume', 'transition'].includes(gameState) && bgmOn) AudioSys.startBGM();
+            else AudioSys.stopBGM();
         }
 
-        // --- SISTEMA DE CUENTA REGRESIVA ---
+        function openLeaderboard() {
+            const arr = Object.keys(usersData).map(k => ({ name: k, maxMode: usersData[k].maxMode, points: usersData[k].points }));
+            arr.sort((a,b) => b.maxMode !== a.maxMode ? b.maxMode - a.maxMode : b.points - a.points);
+            
+            const cont = document.getElementById('leaderboard-content');
+            cont.innerHTML = '';
+            arr.forEach((u, i) => {
+                const row = document.createElement('div');
+                row.className = `flex bg-white/5 p-3 rounded-lg border border-white/5 text-white font-semibold ${u.name===currentUser?'ring-2 ring-yellow-400':''}`;
+                row.innerHTML = `
+                    <div class="w-16 text-center text-yellow-500 font-black">#${i+1}</div>
+                    <div class="flex-1 pl-4 truncate">${u.name}</div>
+                    <div class="flex-1 text-center text-emerald-400">${u.maxMode}</div>
+                    <div class="w-32 text-right pr-4 text-rose-300">${u.points}</div>
+                `;
+                cont.appendChild(row);
+            });
+            setGameState('leaderboard');
+        }
+
         function startCountdown(isResume = false) {
             AudioSys.init();
             setGameState(isResume ? 'countdown_resume' : 'countdown');
-            
             let count = 3;
             const textEl = document.getElementById('countdown-text');
-            
             const animateText = (text, isGo = false) => {
                 textEl.innerText = text;
                 textEl.classList.remove('animate-pop-in');
                 void textEl.offsetWidth; 
-                
                 if(isGo) {
                     textEl.className = "text-9xl md:text-[12rem] font-black text-emerald-400 drop-shadow-[0_0_40px_rgba(52,211,153,0.9)] animate-pop-in tracking-widest";
                     if(sfxOn) AudioSys.playTone(800, 'sine', 0.4, 0.2); 
@@ -643,62 +585,49 @@
                     count--;
                     setTimeout(tick, 1000);
                 } else {
-                    if (gameState === 'countdown_resume') {
-                        setGameState('playing');
-                    } else {
-                        beginGameRound();
-                    }
+                    if (gameState === 'countdown_resume') setGameState('playing');
+                    else beginGameRound();
                 }
             };
             tick();
         }
 
-        // --- LÓGICA PRINCIPAL DEL JUEGO ---
         function setGameState(newState) {
             if(gameState === 'playing' && newState !== 'playing') stopLoops();
-            
             if (gameState === 'paused' && newState === 'countdown_resume') {
                 gameState = newState;
                 updateUI();
                 startCountdown(true);
                 return;
             }
-
             gameState = newState;
             if (gameState === 'playing') startLoops();
-            
             updateUI();
         }
 
         function startGame() {
-            // Activar pantalla completa al primer clic en Jugar
-            enterFullScreen(); 
-
+            enterFullScreen();
             score = 0;
+            modePoints = 0;
             lives = 3;
-            level = 1;
             combo = 0;
-            timeLeft = DIFF_SETTINGS[selectedDifficulty].time;
+            timeLeft = ALL_MODES[currentModeIndex].time;
             currentSubject = "Ready...";
-            
             document.getElementById('particles-container').innerHTML = '';
             document.getElementById('floating-texts-container').innerHTML = '';
             document.getElementById('balloons-container').innerHTML = '';
-            
-            if (AudioSys.bgmEl) {
-                AudioSys.bgmEl.currentTime = 0;
-            }
-
+            if (AudioSys.bgmEl) AudioSys.bgmEl.currentTime = 0;
             startCountdown(false);
         }
 
         function beginGameRound() {
-            generateRound(level);
+            generateRound();
             setGameState('playing');
         }
 
-        function generateRound(currentLevel) {
-            const dataPool = GRAMMAR_DATA[selectedDifficulty];
+        function generateRound() {
+            let pLevel = Math.min(3, Math.ceil((currentModeIndex + 1) / 30));
+            const dataPool = GRAMMAR_DATA[pLevel];
             const q = dataPool[Math.floor(Math.random() * dataPool.length)];
             
             const subjEl = document.getElementById('current-subject');
@@ -716,11 +645,9 @@
 
             balloons = [];
             let incorrectCounter = 0;
-
             const shuffledColors = [...BALLOON_COLORS].sort(() => 0.5 - Math.random());
             const xPos = [15, 50, 85].sort(() => 0.5 - Math.random());
-            
-            const speedCalc = DIFF_SETTINGS[selectedDifficulty].baseSpeed + (currentLevel * 0.08) + (Math.random() * 0.1);
+            const speedCalc = ALL_MODES[currentModeIndex].speed;
 
             for (let i = 0; i < 3; i++) {
                 const isCorrect = i === isCorrectIndex;
@@ -742,25 +669,22 @@
             const container = document.getElementById('balloons-container');
             container.innerHTML = '';
             balloonElements = {};
-            
             balloons.forEach(b => {
                 const el = document.createElement('div');
                 el.className = 'absolute flex flex-col items-center w-28 md:w-32 balloon-idle';
                 el.style.left = `calc(${b.x}% - 3.5rem)`;
                 el.style.top = `${b.y}%`;
-                
+                let scaleVal = currentModeIndex > 50 ? 0.8 : 1;
                 el.innerHTML = `
-                    <div class="w-24 h-32 md:w-28 md:h-36 ${b.colorData.class} rounded-t-full rounded-b-[45%] flex items-center justify-center shadow-[inset_-6px_-6px_15px_rgba(0,0,0,0.2),_0_10px_15px_rgba(0,0,0,0.3)] cursor-pointer transform hover:scale-105 active:scale-95 transition-all relative overflow-hidden group border border-white/20">
+                    <div style="transform: scale(${scaleVal})" class="w-24 h-32 md:w-28 md:h-36 ${b.colorData.class} rounded-t-full rounded-b-[45%] flex items-center justify-center shadow-[inset_-6px_-6px_15px_rgba(0,0,0,0.2),_0_10px_15px_rgba(0,0,0,0.3)] cursor-pointer hover:scale-105 active:scale-95 transition-all relative overflow-hidden group border border-white/20">
                         <div class="absolute top-3 left-3 w-5 h-8 bg-white/30 rounded-full rotate-[30deg] pointer-events-none group-hover:bg-white/40 transition-colors"></div>
-                        <span class="text-white font-extrabold text-2xl md:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] z-10 pointer-events-none px-2 text-center w-full break-words leading-tight tracking-wide">${b.verb}</span>
+                        <span class="text-white font-extrabold text-2xl md:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] z-10 pointer-events-none px-2 text-center w-full break-words leading-tight tracking-wide ${currentModeIndex > 80 ? 'opacity-0 group-hover:opacity-100' : ''}">${b.verb}</span>
                     </div>
                     <div class="w-4 h-4 ${b.colorData.class} mt-[-6px] rotate-45 z-0 pointer-events-none shadow-md border-b border-r border-black/10"></div>
                     <div class="w-[2px] h-20 md:h-24 bg-white/40 -mt-1 pointer-events-none"></div>
                 `;
-                
                 el.children[0].onmousedown = (e) => { e.preventDefault(); handleBalloonClick(b.id); };
                 el.children[0].ontouchstart = (e) => { e.preventDefault(); handleBalloonClick(b.id); };
-                
                 container.appendChild(el);
                 balloonElements[b.id] = el;
             });
@@ -768,8 +692,7 @@
 
         function createParticles(x, y, hexColor) {
             const container = document.getElementById('particles-container');
-            const numParticles = 12;
-            for(let i=0; i<numParticles; i++) {
+            for(let i=0; i<12; i++) {
                 const p = document.createElement('div');
                 p.className = 'particle';
                 p.style.backgroundColor = hexColor;
@@ -777,12 +700,10 @@
                 p.style.top = `${y}%`;
                 p.style.width = `${Math.random() * 8 + 6}px`;
                 p.style.height = p.style.width;
-                
                 const angle = Math.random() * Math.PI * 2;
                 const distance = Math.random() * 60 + 40;
                 p.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
                 p.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
-                
                 container.appendChild(p);
                 setTimeout(() => p.remove(), 600);
             }
@@ -792,17 +713,15 @@
             if (gameState !== 'playing') return;
             const balloon = balloons.find(b => b.id === id);
             if (!balloon) return;
-
             if (balloon.isCorrect) {
                 combo++;
                 if (sfxOn) {
                     AudioSys.playPop();
                     setTimeout(() => AudioSys.playCombo(combo), 100);
                 }
-                
                 const pointsEarned = 10 * combo;
                 score += pointsEarned;
-                
+                modePoints += pointsEarned;
                 createParticles(balloon.x, balloon.y + 10, balloon.colorData.hex);
                 addFloatingText(balloon.x, balloon.y, `+${pointsEarned}`, 'text-emerald-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-4xl md:text-5xl');
                 
@@ -810,15 +729,16 @@
                 renderBalloons(); 
                 updateUI();
                 
-                setTimeout(() => generateRound(level), 200);
-                
+                if (modePoints >= ALL_MODES[currentModeIndex].reqScore) {
+                    setTimeout(() => handleTransition(), 300);
+                } else {
+                    setTimeout(() => generateRound(), 200);
+                }
             } else {
                 combo = 0; 
                 if (sfxOn) AudioSys.playError();
                 lives -= 1;
-                
                 addFloatingText(balloon.x, balloon.y, 'INCORRECT!', 'text-rose-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-2xl md:text-3xl tracking-widest');
-                
                 balloons = balloons.filter(b => b.id !== id);
                 if (balloonElements[id]) {
                     const el = balloonElements[id];
@@ -828,12 +748,8 @@
                     setTimeout(() => { if(el.parentNode) el.remove(); }, 500);
                     delete balloonElements[id];
                 }
-
                 updateUI();
-                
-                if (lives <= 0) {
-                    setTimeout(() => setGameState('gameover'), 500);
-                }
+                if (lives <= 0) setTimeout(() => triggerGameOver(), 500);
             }
         }
 
@@ -841,23 +757,24 @@
             combo = 0; 
             if (sfxOn) AudioSys.playError();
             lives -= 1;
-            
             balloons = [];
             renderBalloons();
             updateUI();
-            
-            if (lives <= 0) {
-                setGameState('gameover');
-            } else {
+            if (lives <= 0) triggerGameOver();
+            else {
                 const subjEl = document.getElementById('current-subject');
                 subjEl.innerText = "It got away!";
                 subjEl.className = "text-3xl md:text-4xl text-rose-400 font-black tracking-widest drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative z-10 transition-all uppercase";
-                
                 setTimeout(() => {
                     subjEl.className = "text-5xl md:text-6xl text-white font-black tracking-wide drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)] relative z-10 transition-all";
-                    generateRound(level);
+                    generateRound();
                 }, 1000);
             }
+        }
+
+        function triggerGameOver() {
+            saveUserData();
+            setGameState('gameover');
         }
 
         function addFloatingText(x, y, text, colorClass) {
@@ -872,10 +789,9 @@
             setTimeout(() => el.remove(), 1000);
         }
 
-        // --- BUCLES DEL JUEGO ---
         function startLoops() {
             if (!gameLoopInterval) gameLoopInterval = setInterval(gameLoop, 16);
-            if (!timerInterval) timerInterval = setInterval(timerLoop, 1000);
+            if (!timerInterval) timerInterval = setInterval(timerLoop, 100);
         }
 
         function stopLoops() {
@@ -892,10 +808,12 @@
                 if (b.y > 110) {
                     if (b.isCorrect) missedCorrect = true;
                 } else {
-                    if (balloonElements[b.id]) balloonElements[b.id].style.top = `${b.y}%`;
+                    if (balloonElements[b.id]) {
+                        balloonElements[b.id].style.top = `${b.y}%`;
+                        if(currentModeIndex > 70 && b.y > 50) balloonElements[b.id].style.opacity = '0';
+                    }
                 }
             });
-
             if (missedCorrect) {
                 stopLoops();
                 handleMissedCorrect();
@@ -904,30 +822,39 @@
         }
 
         function timerLoop() {
-            timeLeft -= 1;
+            timeLeft -= 0.1;
             if (timeLeft <= 0) {
                 timeLeft = 0;
-                setGameState('transition');
-                handleTransition();
+                stopLoops();
+                handleMissedCorrect();
+                if (lives > 0) {
+                    timeLeft = ALL_MODES[currentModeIndex].time;
+                    startLoops();
+                }
             } else {
                 updateUI();
             }
         }
 
         function handleTransition() {
+            setGameState('transition');
             if (sfxOn) AudioSys.playLevelUp();
+            saveUserData();
             updateUI(); 
-            
             if (transitionTimeout) clearTimeout(transitionTimeout);
             transitionTimeout = setTimeout(() => {
-                level += 1;
-                timeLeft = DIFF_SETTINGS[selectedDifficulty].time;
-                generateRound(level);
+                currentModeIndex++;
+                if(currentModeIndex >= ALL_MODES.length) {
+                    setGameState('menu');
+                    return;
+                }
+                modePoints = 0;
+                timeLeft = ALL_MODES[currentModeIndex].time;
+                generateRound();
                 setGameState('playing');
             }, 3000);
         }
 
-        // --- CONTROLES DE AJUSTES ---
         function openSettings() {
             previousState = gameState;
             setGameState('settings');
@@ -949,10 +876,7 @@
             updateUI();
         }
 
-        window.onload = () => {
-            setDifficulty(1); 
-            updateUI();
-        };
+        window.onload = () => updateUI();
     </script>
 </body>
 </html>
